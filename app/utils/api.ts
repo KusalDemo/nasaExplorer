@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {APOD, MarsRoverPhoto, NearEarthObject, RoverManifest} from "../types/api";
+import {APOD, EarthImage, MarsRoverPhoto, NearEarthObject, RoverManifest} from "../types/api";
 
 
 const NASA_API_KEY = '4pxrCp6RAQdSObS5alMeMY8ZQy6KecFpSOTPXArK';
@@ -50,4 +50,15 @@ export const getNearEarthObjects = async (
         params: { start_date: startDate, end_date: endDate },
     });
     return Object.values(response.data.near_earth_objects).flat();
+};
+
+export const getEarthImagery = async (
+    lat: number,
+    lon: number,
+    date: string
+): Promise<EarthImage> => {
+    const response = await api.get('/planetary/earth/assets', {
+        params: { lat, lon, date },
+    });
+    return response.data;
 };
