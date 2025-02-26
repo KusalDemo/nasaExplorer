@@ -5,7 +5,8 @@ export default function TabLayout() {
     return (
         <Tabs
             screenOptions={{
-                tabBarActiveTintColor: '#007AFF'
+                tabBarActiveTintColor: '#007AFF',
+                tabBarStyle: { paddingBottom: 5 },
             }}>
             <Tabs.Screen
                 name="index"
@@ -13,6 +14,15 @@ export default function TabLayout() {
                     title: 'Articles',
                     tabBarIcon: ({ size, color }) => (
                         <Ionicons name="newspaper" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="explore"
+                options={{
+                    title: 'Explore',
+                    tabBarIcon: ({ size, color }) => (
+                        <Ionicons name="rocket" size={size} color={color} />
                     ),
                 }}
             />
