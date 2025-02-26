@@ -121,7 +121,11 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         borderRadius: 12,
         overflow: 'hidden',
-        shadowColor: '#000'
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     articleImage: {
         width: '100%',
@@ -140,12 +144,22 @@ const styles = StyleSheet.create({
         color: '#666',
         marginBottom: 10,
     },
+    articleActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        gap: 10,
+    },
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 8,
         borderRadius: 6,
         backgroundColor: '#f0f0f0',
+    },
+    actionText: {
+        marginLeft: 5,
+        fontSize: 14,
+        color: '#007AFF',
     },
     deleteButton: {
         backgroundColor: '#FFF3F3',
