@@ -1,18 +1,27 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Link, router } from 'expo-router';
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../store/slices/userSlice';
 
 export default function SignupScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const dispatch = useDispatch();
 
   const handleSignup = () => {
     if (!name || !email || !password) {
       setError('Please fill in all fields');
       return;
     }
+
+    dispatch(loginSuccess({
+      id: '1',
+      email,
+      name,
+    }));
   };
 
   return (
