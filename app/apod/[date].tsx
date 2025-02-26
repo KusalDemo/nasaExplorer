@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Share } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { format } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
 import { APOD } from '../types/api';
 import LoadingView from '../components/LoadingView';
 import ErrorView from '../components/ErrorView';
@@ -50,7 +51,12 @@ export default function APODDetailsScreen() {
         <ScrollView style={styles.container}>
             <Stack.Screen
                 options={{
-                    title: format(new Date(apod.date), 'MMMM d, yyyy')
+                    title: format(new Date(apod.date), 'MMMM d, yyyy'),
+                    headerRight: () => (
+                        <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+                            <Ionicons name="share-outline" size={24} color="#007AFF" />
+                        </TouchableOpacity>
+                    ),
                 }}
             />
             <Image
@@ -61,6 +67,9 @@ export default function APODDetailsScreen() {
             <View style={styles.content}>
                 <Text style={styles.title}>{apod.title}</Text>
                 <Text style={styles.explanation}>{apod.explanation}</Text>
+                {apod.copyright && (
+                    <Text style={styles.copyright}>© {apod.copyright}</Text>
+                )}
             </View>
         </ScrollView>
     );
@@ -87,5 +96,14 @@ const styles = StyleSheet.create({
         fontSize: 16,
         lineHeight: 24,
         color: '#333',
-    }
+    },
+    copyright: {
+        marginTop: 16,
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
+    },
+    shareButton: {
+        marginRight: 15,
+    },
 });
