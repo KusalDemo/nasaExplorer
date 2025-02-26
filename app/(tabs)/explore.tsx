@@ -11,6 +11,13 @@ const FEATURES = [
         href: '/explore/apod',
     },
     {
+        id: 'gallery',
+        title: 'Space Gallery',
+        icon: 'images',
+        description: 'Browse through a collection of space images.',
+        href: '/explore/gallery',
+    },
+    {
         id: 'mars',
         title: 'Mars Rovers',
         icon: 'planet',
@@ -24,6 +31,13 @@ const FEATURES = [
         description: 'Track asteroids and near-Earth objects.',
         href: '/explore/asteroids',
     },
+    {
+        id: 'earth',
+        title: 'Earth Imagery',
+        icon: 'earth',
+        description: 'View satellite imagery of Earth from various locations and dates.',
+        href: '/explore/earth',
+    }
 ];
 
 export default function ExploreScreen() {

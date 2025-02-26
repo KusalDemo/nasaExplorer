@@ -108,10 +108,29 @@ const styles = StyleSheet.create({
         marginHorizontal: 15,
         marginVertical: 8,
         borderRadius: 12,
+        overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 8
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    articleImage: {
+        width: '100%',
+        height: 200,
+    },
+    articleContent: {
+        padding: 15,
+    },
+    articleTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    articleMeta: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 8,
     },
     articleStats: {
         flexDirection: 'row',
@@ -121,5 +140,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginRight: 15,
-    }
+    },
+    statText: {
+        marginLeft: 4,
+        color: '#666',
+    },
 });

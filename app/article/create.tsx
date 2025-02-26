@@ -102,9 +102,13 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 16,
     },
+    contentInput: {
+        height: 300,
+        marginBottom: 20,
+    },
     imageButton: {
         backgroundColor: '#f0f0f0',
-        padding: 8,
+        padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginBottom: 15,
