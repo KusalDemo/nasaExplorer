@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getNearEarthObjects } from '../../utils/api';
 import { NearEarthObject } from '../../types/api';
 import LoadingView from '../../components/LoadingView';
 import ErrorView from '../../components/ErrorView';
 import { format } from 'date-fns';
+import {getNearEarthObjects} from "../../util/api";
 
 export default function AsteroidDetailsScreen() {
     const { id } = useLocalSearchParams();
@@ -189,7 +189,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f0f0f0'
+        backgroundColor: '#f0f0f0',
+        padding: 15,
+        borderRadius: 8,
+        gap: 8,
+    },
+    linkButtonText: {
+        fontSize: 16,
+        color: '#007AFF',
+        fontWeight: '600',
     },
     shareButton: {
         marginRight: 15,

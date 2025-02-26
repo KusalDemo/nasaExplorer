@@ -150,14 +150,15 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     cameraList: {
-        paddingHorizontal: 10,
-        marginBottom: 10,
+        paddingHorizontal: 15,
+        marginBottom: 15,
     },
     cameraButton: {
         paddingHorizontal: 15,
         paddingVertical: 8,
-        borderRadius: 10,
+        borderRadius: 20,
         backgroundColor: '#f0f0f0',
+        marginRight: 8,
     },
     selectedCamera: {
         backgroundColor: '#007AFF',
@@ -176,6 +177,9 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
         overflow: 'hidden',
     },
     photo: {
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     },
     camera: {
         fontSize: 16,
-        fontWeight: '400',
+        fontWeight: '600',
         marginBottom: 4,
     },
     date: {

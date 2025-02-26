@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {APOD, MarsRoverPhoto, RoverManifest} from "../types/api";
+import {APOD, MarsRoverPhoto, NearEarthObject, RoverManifest} from "../types/api";
 
 
 const NASA_API_KEY = '4pxrCp6RAQdSObS5alMeMY8ZQy6KecFpSOTPXArK';
@@ -40,4 +40,14 @@ export const getMarsRoverPhotos = async (
 export const getRoverManifest = async (rover: string): Promise<RoverManifest> => {
     const response = await api.get(`/mars-photos/api/v1/manifests/${rover}`);
     return response.data.photo_manifest;
+};
+
+export const getNearEarthObjects = async (
+    startDate: string,
+    endDate: string
+): Promise<NearEarthObject[]> => {
+    const response = await api.get('/neo/rest/v1/feed', {
+        params: { start_date: startDate, end_date: endDate },
+    });
+    return Object.values(response.data.near_earth_objects).flat();
 };
