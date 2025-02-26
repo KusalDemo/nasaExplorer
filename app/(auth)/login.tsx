@@ -21,6 +21,7 @@ export default function LoginScreen() {
       email,
       name: 'Kusal Gunasekara',
     }));
+    router.replace('/(tabs)');
   };
 
   return (

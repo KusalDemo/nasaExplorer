@@ -22,6 +22,7 @@ export default function SignupScreen() {
       email,
       name,
     }));
+    router.replace('/(tabs)');
   };
 
   return (

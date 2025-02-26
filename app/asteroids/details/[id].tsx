@@ -6,7 +6,7 @@ import { NearEarthObject } from '../../types/api';
 import LoadingView from '../../components/LoadingView';
 import ErrorView from '../../components/ErrorView';
 import { format } from 'date-fns';
-import {getNearEarthObjects} from "../../util/api";
+import {getNearEarthObjects} from "../../utils/api";
 
 export default function AsteroidDetailsScreen() {
     const { id } = useLocalSearchParams();

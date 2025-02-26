@@ -1,30 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
-import { format } from 'date-fns';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { getAPOD } from '../utils/api';
 import { APOD } from '../types/api';
 import LoadingView from '../components/LoadingView';
 import ErrorView from '../components/ErrorView';
-import {getAPOD} from "../utils/api";
 
-export default function APODDetailsScreen() {
-    const { date } = useLocalSearchParams();
+export default function APODScreen() {
     const [apod, setApod] = useState<APOD | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
         fetchAPOD();
-    }, [date]);
+    }, []);
 
     const fetchAPOD = async () => {
         try {
             setError(null);
-            const data = await getAPOD(date as string);
+            const data = await getAPOD();
             setApod(data);
         } catch (err) {
-            setError('Failed to load image details');
+            setError('Failed to load astronomy picture');
         } finally {
             setLoading(false);
         }
@@ -35,7 +34,7 @@ export default function APODDetailsScreen() {
             try {
                 await Share.share({
                     title: apod.title,
-                    message: `Check out NASA's Astronomy Picture of the Day: ${apod.title}\n\n${apod.explanation}\n\n${apod.url}`,
+                    message: `${apod.title}\n\n${apod.explanation}\n\n${apod.url}`,
                 });
             } catch (error) {
                 console.error(error);
@@ -49,24 +48,27 @@ export default function APODDetailsScreen() {
 
     return (
         <ScrollView style={styles.container}>
-            <Stack.Screen
-                options={{
-                    title: format(new Date(apod.date), 'MMMM d, yyyy'),
-                    headerRight: () => (
-                        <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-                            <Ionicons name="share-outline" size={24} color="#007AFF" />
-                        </TouchableOpacity>
-                    ),
-                }}
-            />
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
+
             <Image
                 source={{ uri: apod.url }}
                 style={styles.image}
                 resizeMode="cover"
             />
+
             <View style={styles.content}>
-                <Text style={styles.title}>{apod.title}</Text>
+                <View style={styles.header}>
+                    <Text style={styles.title}>{apod.title}</Text>
+                    <TouchableOpacity onPress={handleShare}>
+                        <Ionicons name="share-outline" size={24} color="#007AFF" />
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={styles.date}>{apod.date}</Text>
                 <Text style={styles.explanation}>{apod.explanation}</Text>
+
                 {apod.copyright && (
                     <Text style={styles.copyright}>© {apod.copyright}</Text>
                 )}
@@ -80,6 +82,15 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 20,
+        padding: 8,
+    },
     image: {
         width: '100%',
         height: 300,
@@ -87,23 +98,33 @@ const styles = StyleSheet.create({
     content: {
         padding: 20,
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
     title: {
+        flex: 1,
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 12,
+        marginRight: 10,
+    },
+    date: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 15,
     },
     explanation: {
         fontSize: 16,
         lineHeight: 24,
         color: '#333',
+        marginBottom: 20,
     },
     copyright: {
-        marginTop: 16,
         fontSize: 14,
         color: '#666',
         textAlign: 'center',
-    },
-    shareButton: {
-        marginRight: 15,
+        marginTop: 20,
     },
 });

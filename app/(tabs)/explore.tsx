@@ -9,7 +9,21 @@ const FEATURES = [
         icon: 'planet',
         description: 'Discover the cosmos! Each day a different image or photograph of our fascinating universe.',
         href: '/explore/apod',
-    }
+    },
+    {
+        id: 'mars',
+        title: 'Mars Rovers',
+        icon: 'planet',
+        description: 'Explore Mars through the eyes of NASA\'s rovers.',
+        href: '/explore/mars',
+    },
+    {
+        id: 'asteroids',
+        title: 'Near Earth Objects',
+        icon: 'warning',
+        description: 'Track asteroids and near-Earth objects.',
+        href: '/explore/asteroids',
+    },
 ];
 
 export default function ExploreScreen() {
