@@ -19,7 +19,7 @@ export default function LoginScreen() {
     dispatch(loginSuccess({
       id: '1',
       email,
-      name: 'John Doe',
+      name: 'Kusal Gunasekara',
     }));
   };
 
