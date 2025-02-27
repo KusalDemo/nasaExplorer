@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
-import { useLocalSearchParams, Link, Stack } from 'expo-router';
-import { getMarsRoverPhotos, getRoverManifest } from '../../utils/api';
-import { MarsRoverPhoto, RoverManifest } from '../../types/api';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import { fetchRoverManifest, fetchRoverPhotos } from '../../store/slices/marsSlice';
 import LoadingView from '../../components/LoadingView';
 import ErrorView from '../../components/ErrorView';
 
@@ -19,58 +21,60 @@ const CAMERAS = [
 
 export default function RoverDetailsScreen() {
     const { name } = useLocalSearchParams();
-    const [manifest, setManifest] = useState<RoverManifest | null>(null);
-    const [photos, setPhotos] = useState<MarsRoverPhoto[]>([]);
+    const roverName = name as string;
     const [selectedCamera, setSelectedCamera] = useState('all');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [refreshing, setRefreshing] = useState(false);
+
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const { roverManifests, roverPhotos, loading, error } = useSelector((state: RootState) => state.mars);
+
+    const manifest = roverManifests[roverName];
+    const photos = roverPhotos[roverName] || [];
 
     const fetchData = async () => {
-        try {
-            setError(null);
-            const manifestData = await getRoverManifest(name as string);
-            setManifest(manifestData);
-
-            const photosData = await getMarsRoverPhotos(
-                name as string,
-                manifestData.max_sol,
-                selectedCamera === 'all' ? undefined : selectedCamera
-            );
-            setPhotos(photosData);
-        } catch (err) {
-            setError('Failed to load rover data');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+        await dispatch(fetchRoverManifest(roverName) as any);
+        if (manifest) {
+            dispatch(fetchRoverPhotos({
+                rover: roverName,
+                sol: manifest.max_sol,
+                camera: selectedCamera === 'all' ? undefined : selectedCamera
+            }) as any);
         }
     };
 
     useEffect(() => {
         fetchData();
-    }, [name, selectedCamera]);
+    }, [roverName, dispatch]);
 
-    if (loading && !refreshing) return <LoadingView />;
+    useEffect(() => {
+        if (manifest) {
+            dispatch(fetchRoverPhotos({
+                rover: roverName,
+                sol: manifest.max_sol,
+                camera: selectedCamera === 'all' ? undefined : selectedCamera
+            }) as any);
+        }
+    }, [selectedCamera, manifest]);
+
+    if (loading && !manifest) return <LoadingView />;
     if (error) return <ErrorView message={error} onRetry={fetchData} />;
     if (!manifest) return null;
 
     return (
         <View style={styles.container}>
-            <Stack.Screen
-                options={{
-                    title: manifest.name,
-                    headerTitleStyle: styles.headerTitle,
-                }}
-            />
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
 
             <FlatList
                 data={photos}
                 keyExtractor={(item) => item.id.toString()}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={fetchData} />
+                    <RefreshControl refreshing={loading} onRefresh={fetchData} />
                 }
                 ListHeaderComponent={
                     <View>
+                        <Text style={styles.header}>{manifest.name} Rover</Text>
                         <View style={styles.statsContainer}>
                             <Text style={styles.statsTitle}>Mission Stats</Text>
                             <Text style={styles.statsText}>Status: {manifest.status.toUpperCase()}</Text>
@@ -105,20 +109,21 @@ export default function RoverDetailsScreen() {
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <Link href={`/mars/photo/${item.id}`} asChild>
-                        <TouchableOpacity style={styles.photoContainer}>
-                            <Image
-                                source={{ uri: item.img_src }}
-                                style={styles.photo}
-                                resizeMode="cover"
-                            />
-                            <View style={styles.photoInfo}>
-                                <Text style={styles.camera}>{item.camera.full_name}</Text>
-                                <Text style={styles.date}>Sol: {item.sol}</Text>
-                                <Text style={styles.date}>Earth Date: {item.earth_date}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </Link>
+                    <TouchableOpacity
+                        style={styles.photoContainer}
+                        onPress={() => router.push(`/mars/photo/${item.id}`)}
+                    >
+                        <Image
+                            source={{ uri: item.img_src }}
+                            style={styles.photo}
+                            resizeMode="cover"
+                        />
+                        <View style={styles.photoInfo}>
+                            <Text style={styles.camera}>{item.camera.full_name}</Text>
+                            <Text style={styles.date}>Sol: {item.sol}</Text>
+                            <Text style={styles.date}>Earth Date: {item.earth_date}</Text>
+                        </View>
+                    </TouchableOpacity>
                 )}
             />
         </View>
@@ -130,14 +135,28 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    headerTitle: {
-        fontSize: 20,
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 20,
+        padding: 8,
+    },
+    header: {
+        fontSize: 24,
         fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 60,
+        marginBottom: 20,
     },
     statsContainer: {
         padding: 20,
         backgroundColor: '#f8f8f8',
         marginBottom: 10,
+        marginHorizontal: 20,
+        borderRadius: 12,
     },
     statsTitle: {
         fontSize: 20,
