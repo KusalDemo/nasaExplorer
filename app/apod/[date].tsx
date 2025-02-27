@@ -1,41 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
-import { format } from 'date-fns';
+import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { APOD } from '../types/api';
+import { format } from 'date-fns';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { fetchApod } from '../store/slices/apodSlice';
 import LoadingView from '../components/LoadingView';
 import ErrorView from '../components/ErrorView';
-import {getAPOD} from "../utils/api";
 
 export default function APODDetailsScreen() {
     const { date } = useLocalSearchParams();
-    const [apod, setApod] = useState<APOD | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const { currentApod, loading, error } = useSelector((state: RootState) => state.apod);
 
     useEffect(() => {
-        fetchAPOD();
-    }, [date]);
-
-    const fetchAPOD = async () => {
-        try {
-            setError(null);
-            const data = await getAPOD(date as string);
-            setApod(data);
-        } catch (err) {
-            setError('Failed to load image details');
-        } finally {
-            setLoading(false);
-        }
-    };
+        dispatch(fetchApod(date as string) as any);
+    }, [date, dispatch]);
 
     const handleShare = async () => {
-        if (apod) {
+        if (currentApod) {
             try {
                 await Share.share({
-                    title: apod.title,
-                    message: `Check out NASA's Astronomy Picture of the Day: ${apod.title}\n\n${apod.explanation}\n\n${apod.url}`,
+                    title: currentApod.title,
+                    message: `Check out NASA's Astronomy Picture of the Day: ${currentApod.title}\n\n${currentApod.explanation}\n\n${currentApod.url}`,
                 });
             } catch (error) {
                 console.error(error);
@@ -43,15 +32,23 @@ export default function APODDetailsScreen() {
         }
     };
 
+    const handleRetry = () => {
+        dispatch(fetchApod(date as string) as any);
+    };
+
     if (loading) return <LoadingView />;
-    if (error) return <ErrorView message={error} onRetry={fetchAPOD} />;
-    if (!apod) return null;
+    if (error) return <ErrorView message={error} onRetry={handleRetry} />;
+    if (!currentApod) return null;
 
     return (
         <ScrollView style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
+
             <Stack.Screen
                 options={{
-                    title: format(new Date(apod.date), 'MMMM d, yyyy'),
+                    title: format(new Date(currentApod.date), 'MMMM d, yyyy'),
                     headerRight: () => (
                         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
                             <Ionicons name="share-outline" size={24} color="#007AFF" />
@@ -59,16 +56,18 @@ export default function APODDetailsScreen() {
                     ),
                 }}
             />
+
             <Image
-                source={{ uri: apod.url }}
+                source={{ uri: currentApod.url }}
                 style={styles.image}
                 resizeMode="cover"
             />
+
             <View style={styles.content}>
-                <Text style={styles.title}>{apod.title}</Text>
-                <Text style={styles.explanation}>{apod.explanation}</Text>
-                {apod.copyright && (
-                    <Text style={styles.copyright}>© {apod.copyright}</Text>
+                <Text style={styles.title}>{currentApod.title}</Text>
+                <Text style={styles.explanation}>{currentApod.explanation}</Text>
+                {currentApod.copyright && (
+                    <Text style={styles.copyright}>© {currentApod.copyright}</Text>
                 )}
             </View>
         </ScrollView>
@@ -79,6 +78,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 20,
+        padding: 8,
     },
     image: {
         width: '100%',
