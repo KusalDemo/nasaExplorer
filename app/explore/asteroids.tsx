@@ -1,46 +1,43 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { format, subDays } from 'date-fns';
-import { getNearEarthObjects } from '../utils/api';
-import { NearEarthObject } from '../types/api';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { fetchAsteroids } from '../store/slices/asteroidsSlice';
 import LoadingView from '../components/LoadingView';
 import ErrorView from '../components/ErrorView';
 
 export default function AsteroidsScreen() {
-    const [asteroids, setAsteroids] = useState<NearEarthObject[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [refreshing, setRefreshing] = useState(false);
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const { asteroids, loading, error } = useSelector((state: RootState) => state.asteroids);
 
-    const fetchAsteroids = async () => {
-        try {
-            setError(null);
-            const endDate = format(new Date(), 'yyyy-MM-dd');
-            const startDate = format(subDays(new Date(), 7), 'yyyy-MM-dd');
-            const data = await getNearEarthObjects(startDate, endDate);
-            setAsteroids(data);
-        } catch (err) {
-            setError('Failed to load Near Earth Objects');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
+    const fetchAsteroidsData = () => {
+        const endDate = format(new Date(), 'yyyy-MM-dd');
+        const startDate = format(subDays(new Date(), 7), 'yyyy-MM-dd');
+        dispatch(fetchAsteroids({ startDate, endDate }) as any);
     };
 
     useEffect(() => {
-        fetchAsteroids();
-    }, []);
+        fetchAsteroidsData();
+    }, [dispatch]);
 
-    if (loading && !refreshing) return <LoadingView />;
-    if (error) return <ErrorView message={error} onRetry={fetchAsteroids} />;
+    if (loading && asteroids.length === 0) return <LoadingView />;
+    if (error) return <ErrorView message={error} onRetry={fetchAsteroidsData} />;
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
+
             <FlatList
                 data={asteroids}
                 keyExtractor={(item) => item.id}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={fetchAsteroids} />
+                    <RefreshControl refreshing={loading} onRefresh={fetchAsteroidsData} />
                 }
                 ListHeaderComponent={
                     <Text style={styles.header}>Near Earth Objects</Text>
@@ -83,6 +80,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 20,
+        padding: 8,
     },
     header: {
         fontSize: 24,
