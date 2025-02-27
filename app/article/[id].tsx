@@ -150,13 +150,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 10,
         marginBottom: 30,
-        paddingTop: 10
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
     },
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
         borderRadius: 20,
+        backgroundColor: '#f0f0f0',
+        gap: 5,
     },
     activeButton: {
         backgroundColor: '#007AFF',
@@ -171,11 +175,17 @@ const styles = StyleSheet.create({
     commentsSection: {
         borderTopWidth: 1,
         borderTopColor: '#eee',
+        paddingTop: 20,
     },
     commentsTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 15,
+    },
+    commentInput: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 20,
     },
     input: {
         flex: 1,
@@ -191,6 +201,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderRadius: 8,
     },
+    commentButtonText: {
+        color: '#fff',
+        fontWeight: '600',
+    },
     comment: {
         backgroundColor: '#f8f8f8',
         padding: 15,
@@ -200,5 +214,13 @@ const styles = StyleSheet.create({
     commentAuthor: {
         fontWeight: '600',
         marginBottom: 5,
-    }
+    },
+    commentText: {
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    commentDate: {
+        fontSize: 12,
+        color: '#666',
+    },
 });

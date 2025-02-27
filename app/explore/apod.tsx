@@ -2,39 +2,27 @@ import { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getAPOD } from '../utils/api';
-import { APOD } from '../types/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { fetchApod } from '../store/slices/apodSlice';
 import LoadingView from '../components/LoadingView';
 import ErrorView from '../components/ErrorView';
 
 export default function APODScreen() {
-    const [apod, setApod] = useState<APOD | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch();
     const router = useRouter();
+    const { currentApod, loading, error } = useSelector((state: RootState) => state.apod);
 
     useEffect(() => {
-        fetchAPOD();
-    }, []);
-
-    const fetchAPOD = async () => {
-        try {
-            setError(null);
-            const data = await getAPOD();
-            setApod(data);
-        } catch (err) {
-            setError('Failed to load astronomy picture');
-        } finally {
-            setLoading(false);
-        }
-    };
+        dispatch(fetchApod() as any);
+    }, [dispatch]);
 
     const handleShare = async () => {
-        if (apod) {
+        if (currentApod) {
             try {
                 await Share.share({
-                    title: apod.title,
-                    message: `${apod.title}\n\n${apod.explanation}\n\n${apod.url}`,
+                    title: currentApod.title,
+                    message: `${currentApod.title}\n\n${currentApod.explanation}\n\n${currentApod.url}`,
                 });
             } catch (error) {
                 console.error(error);
@@ -42,9 +30,13 @@ export default function APODScreen() {
         }
     };
 
+    const handleRetry = () => {
+        dispatch(fetchApod() as any);
+    };
+
     if (loading) return <LoadingView />;
-    if (error) return <ErrorView message={error} onRetry={fetchAPOD} />;
-    if (!apod) return null;
+    if (error) return <ErrorView message={error} onRetry={handleRetry} />;
+    if (!currentApod) return null;
 
     return (
         <ScrollView style={styles.container}>
@@ -53,24 +45,24 @@ export default function APODScreen() {
             </TouchableOpacity>
 
             <Image
-                source={{ uri: apod.url }}
+                source={{ uri: currentApod.url }}
                 style={styles.image}
                 resizeMode="cover"
             />
 
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>{apod.title}</Text>
+                    <Text style={styles.title}>{currentApod.title}</Text>
                     <TouchableOpacity onPress={handleShare}>
                         <Ionicons name="share-outline" size={24} color="#007AFF" />
                     </TouchableOpacity>
                 </View>
 
-                <Text style={styles.date}>{apod.date}</Text>
-                <Text style={styles.explanation}>{apod.explanation}</Text>
+                <Text style={styles.date}>{currentApod.date}</Text>
+                <Text style={styles.explanation}>{currentApod.explanation}</Text>
 
-                {apod.copyright && (
-                    <Text style={styles.copyright}>© {apod.copyright}</Text>
+                {currentApod.copyright && (
+                    <Text style={styles.copyright}>© {currentApod.copyright}</Text>
                 )}
             </View>
         </ScrollView>
