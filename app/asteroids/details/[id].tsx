@@ -1,48 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { NearEarthObject } from '../../types/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import { fetchAsteroids, setSelectedAsteroid } from '../../store/slices/asteroidsSlice';
+import { format } from 'date-fns';
 import LoadingView from '../../components/LoadingView';
 import ErrorView from '../../components/ErrorView';
-import { format } from 'date-fns';
-import {getNearEarthObjects} from "../../utils/api";
 
 export default function AsteroidDetailsScreen() {
     const { id } = useLocalSearchParams();
-    const [asteroid, setAsteroid] = useState<NearEarthObject | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const { asteroids, selectedAsteroid, loading, error } = useSelector((state: RootState) => state.asteroids);
 
     const fetchAsteroid = async () => {
-        try {
-            setError(null);
+        // First check if we already have the asteroid in our state
+        const found = asteroids.find(a => a.id === id);
+        if (found) {
+            dispatch(setSelectedAsteroid(found));
+        } else {
+            // If not, fetch new data
             const endDate = format(new Date(), 'yyyy-MM-dd');
             const startDate = format(new Date(), 'yyyy-MM-dd');
-            const asteroids = await getNearEarthObjects(startDate, endDate);
-            const found = asteroids.find(a => a.id === id);
-            if (found) {
-                setAsteroid(found);
-            } else {
-                setError('Asteroid not found');
+            await dispatch(fetchAsteroids({ startDate, endDate }) as any);
+
+            // After fetching, try to find the asteroid again
+            const newFound = asteroids.find(a => a.id === id);
+            if (newFound) {
+                dispatch(setSelectedAsteroid(newFound));
             }
-        } catch (err) {
-            setError('Failed to load asteroid details');
-        } finally {
-            setLoading(false);
         }
     };
 
     useEffect(() => {
         fetchAsteroid();
-    }, [id]);
+    }, [id, dispatch]);
 
     const handleShare = async () => {
-        if (asteroid) {
+        if (selectedAsteroid) {
             try {
                 await Share.share({
-                    title: `Near Earth Object - ${asteroid.name}`,
-                    message: `Check out this Near Earth Object!\n\nName: ${asteroid.name}\nDiameter: ${Math.round(asteroid.estimated_diameter.kilometers.estimated_diameter_min)} - ${Math.round(asteroid.estimated_diameter.kilometers.estimated_diameter_max)} km\nPotentially Hazardous: ${asteroid.is_potentially_hazardous_asteroid ? 'Yes' : 'No'}\n\nMore info: ${asteroid.nasa_jpl_url}`,
+                    title: `Near Earth Object - ${selectedAsteroid.name}`,
+                    message: `Check out this Near Earth Object!\n\nName: ${selectedAsteroid.name}\nDiameter: ${Math.round(selectedAsteroid.estimated_diameter.kilometers.estimated_diameter_min)} - ${Math.round(selectedAsteroid.estimated_diameter.kilometers.estimated_diameter_max)} km\nPotentially Hazardous: ${selectedAsteroid.is_potentially_hazardous_asteroid ? 'Yes' : 'No'}\n\nMore info: ${selectedAsteroid.nasa_jpl_url}`,
                 });
             } catch (error) {
                 console.error(error);
@@ -50,12 +51,16 @@ export default function AsteroidDetailsScreen() {
         }
     };
 
-    if (loading) return <LoadingView />;
+    if (loading && !selectedAsteroid) return <LoadingView />;
     if (error) return <ErrorView message={error} onRetry={fetchAsteroid} />;
-    if (!asteroid) return null;
+    if (!selectedAsteroid) return null;
 
     return (
         <ScrollView style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
+
             <Stack.Screen
                 options={{
                     title: 'Asteroid Details',
@@ -68,9 +73,9 @@ export default function AsteroidDetailsScreen() {
             />
 
             <View style={styles.content}>
-                <Text style={styles.name}>{asteroid.name}</Text>
+                <Text style={styles.name}>{selectedAsteroid.name}</Text>
 
-                {asteroid.is_potentially_hazardous_asteroid && (
+                {selectedAsteroid.is_potentially_hazardous_asteroid && (
                     <View style={styles.hazardousTag}>
                         <Text style={styles.hazardousText}>⚠️ Potentially Hazardous</Text>
                     </View>
@@ -79,16 +84,16 @@ export default function AsteroidDetailsScreen() {
                 <View style={styles.infoCard}>
                     <Text style={styles.label}>Estimated Diameter</Text>
                     <Text style={styles.value}>
-                        {Math.round(asteroid.estimated_diameter.kilometers.estimated_diameter_min)} - {Math.round(asteroid.estimated_diameter.kilometers.estimated_diameter_max)} km
+                        {Math.round(selectedAsteroid.estimated_diameter.kilometers.estimated_diameter_min)} - {Math.round(selectedAsteroid.estimated_diameter.kilometers.estimated_diameter_max)} km
                     </Text>
 
                     <Text style={styles.label}>Absolute Magnitude</Text>
-                    <Text style={styles.value}>{asteroid.absolute_magnitude_h}</Text>
+                    <Text style={styles.value}>{selectedAsteroid.absolute_magnitude_h}</Text>
                 </View>
 
                 <View style={styles.approachCard}>
                     <Text style={styles.approachTitle}>Close Approach Data</Text>
-                    {asteroid.close_approach_data.map((approach, index) => (
+                    {selectedAsteroid.close_approach_data.map((approach, index) => (
                         <View key={index} style={styles.approachItem}>
                             <Text style={styles.approachDate}>
                                 {approach.close_approach_date}
@@ -119,8 +124,18 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 20,
+        padding: 8,
+    },
     content: {
         padding: 20,
+        marginTop: 60,
     },
     name: {
         fontSize: 24,
