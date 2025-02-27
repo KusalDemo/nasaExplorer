@@ -1,70 +1,69 @@
-import { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
-import { Link } from 'expo-router';
-import { getRoverManifest } from '../utils/api';
-import { RoverManifest } from '../types/api';
+import { useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { fetchRoverManifest } from '../store/slices/marsSlice';
 import LoadingView from '../components/LoadingView';
 import ErrorView from '../components/ErrorView';
 
 const ROVERS = ['Curiosity', 'Perseverance', 'Opportunity', 'Spirit'];
 
 export default function MarsScreen() {
-    const [rovers, setRovers] = useState<RoverManifest[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [refreshing, setRefreshing] = useState(false);
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const { roverManifests, loading, error } = useSelector((state: RootState) => state.mars);
 
-    const fetchRovers = async () => {
-        try {
-            setError(null);
-            const manifests = await Promise.all(
-                ROVERS.map(rover => getRoverManifest(rover.toLowerCase()))
-            );
-            setRovers(manifests);
-        } catch (err) {
-            setError('Failed to load Mars rovers');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
+    const rovers = Object.values(roverManifests);
+
+    const fetchRovers = () => {
+        ROVERS.forEach(rover => {
+            dispatch(fetchRoverManifest(rover.toLowerCase()) as any);
+        });
     };
 
     useEffect(() => {
         fetchRovers();
-    }, []);
+    }, [dispatch]);
 
-    if (loading && !refreshing) return <LoadingView />;
+    if (loading && rovers.length === 0) return <LoadingView />;
     if (error) return <ErrorView message={error} onRetry={fetchRovers} />;
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
+
             <FlatList
                 data={rovers}
                 keyExtractor={(item) => item.name}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={fetchRovers} />
+                    <RefreshControl refreshing={loading} onRefresh={fetchRovers} />
                 }
                 ListHeaderComponent={
                     <Text style={styles.header}>Mars Rovers</Text>
                 }
                 renderItem={({ item }) => (
-                    <Link href={`/mars/rover/${item.name.toLowerCase()}`} asChild>
-                        <TouchableOpacity style={styles.roverCard}>
-                            <View style={styles.roverInfo}>
-                                <Text style={styles.roverName}>{item.name}</Text>
-                                <Text style={[
-                                    styles.status,
-                                    { color: item.status === 'active' ? '#34C759' : '#FF3B30' }
-                                ]}>
-                                    {item.status.toUpperCase()}
-                                </Text>
-                                <Text style={styles.detail}>Launch Date: {item.launch_date}</Text>
-                                <Text style={styles.detail}>Landing Date: {item.landing_date}</Text>
-                                <Text style={styles.detail}>Total Photos: {item.total_photos.toLocaleString()}</Text>
-                                <Text style={styles.detail}>Last Photo: {item.max_date}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </Link>
+                    <TouchableOpacity
+                        style={styles.roverCard}
+                        onPress={() => router.push(`/mars/rover/${item.name.toLowerCase()}`)}
+                    >
+                        <View style={styles.roverInfo}>
+                            <Text style={styles.roverName}>{item.name}</Text>
+                            <Text style={[
+                                styles.status,
+                                { color: item.status === 'active' ? '#34C759' : '#FF3B30' }
+                            ]}>
+                                {item.status.toUpperCase()}
+                            </Text>
+                            <Text style={styles.detail}>Launch Date: {item.launch_date}</Text>
+                            <Text style={styles.detail}>Landing Date: {item.landing_date}</Text>
+                            <Text style={styles.detail}>Total Photos: {item.total_photos.toLocaleString()}</Text>
+                            <Text style={styles.detail}>Last Photo: {item.max_date}</Text>
+                        </View>
+                    </TouchableOpacity>
                 )}
             />
         </View>
@@ -75,6 +74,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        zIndex: 1,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        borderRadius: 20,
+        padding: 8,
     },
     header: {
         fontSize: 24,
