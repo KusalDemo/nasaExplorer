@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../store/slices/userSlice';
+import { registerUser } from '../store/slices/userSlice';
 
 export default function SignupScreen() {
   const [name, setName] = useState('');
@@ -11,60 +11,60 @@ export default function SignupScreen() {
   const [error, setError] = useState('');
   const dispatch = useDispatch();
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!name || !email || !password) {
       setError('Please fill in all fields');
       return;
     }
 
-    dispatch(loginSuccess({
-      id: '1',
-      email,
-      name,
-    }));
-    router.replace('/(tabs)');
+    try {
+      await dispatch(registerUser({ name, email, password })).unwrap();
+      router.replace('/(tabs)');
+    } catch (error) {
+      setError(error.message || 'Signup failed');
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
-      
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        value={name}
-        onChangeText={setName}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      <TouchableOpacity style={styles.button} onPress={handleSignup}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
-      
-      <Link href="/login" asChild>
-        <TouchableOpacity style={styles.linkButton}>
-          <Text style={styles.linkText}>Already have an account? Log In</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Create Account</Text>
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleSignup}>
+          <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
-      </Link>
-    </View>
+
+        <Link href="/login" asChild>
+          <TouchableOpacity style={styles.linkButton}>
+            <Text style={styles.linkText}>Already have an account? Log In</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
   );
 }
 
