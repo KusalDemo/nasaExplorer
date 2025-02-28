@@ -5,14 +5,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
-import { updateArticle } from '../store/slices/articleSlice';
+// import { updateArticle } from '../store/slices/articleSlice';
 import { addComment } from '../store/slices/commentSlice';
 
 export default function ArticleScreen() {
     const { id } = useLocalSearchParams();
     const dispatch = useDispatch();
     const article = useSelector((state: RootState) =>
-        state.articles.articles.find(a => a.id === id)
+        state.articles.articles.find(a => a._id === id)
     );
     const user = useSelector((state: RootState) => state.user.currentUser);
     const comments = useSelector((state: RootState) =>
@@ -23,7 +23,7 @@ export default function ArticleScreen() {
 
     if (!article) return null;
 
-    const handleLike = () => {
+    /*const handleLike = () => {
         dispatch(updateArticle({
             ...article,
             likes: article.likes + 1,
@@ -39,15 +39,15 @@ export default function ArticleScreen() {
             userLiked: false,
             userDisliked: true,
         }));
-    };
+    };*/
 
     const handleComment = () => {
         if (!newComment.trim()) return;
 
         dispatch(addComment({
             id: Date.now().toString(),
-            articleId: article.id,
-            userId: user?.id || '',
+            articleId: article._id,
+            userId: user?._id || '',
             userName: user?.name || '',
             content: newComment,
             createdAt: new Date().toISOString(),
@@ -68,7 +68,7 @@ export default function ArticleScreen() {
                 <Text style={styles.articleText}>{article.content}</Text>
 
                 <View style={styles.actions}>
-                    <TouchableOpacity
+                    {/*<TouchableOpacity
                         style={[styles.actionButton, article.userLiked && styles.activeButton]}
                         onPress={handleLike}>
                         <Ionicons name="thumbs-up" size={20} color={article.userLiked ? '#fff' : '#666'} />
@@ -84,7 +84,7 @@ export default function ArticleScreen() {
                         <Text style={[styles.actionText, article.userDisliked && styles.activeText]}>
                             {article.dislikes}
                         </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>*/}
                 </View>
 
                 <View style={styles.commentsSection}>

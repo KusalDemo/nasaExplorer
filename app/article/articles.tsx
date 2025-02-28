@@ -1,18 +1,42 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
+import { fetchArticles } from '../store/slices/articleSlice';
 import { format } from 'date-fns';
 
 export default function ArticlesScreen() {
     const [searchQuery, setSearchQuery] = useState('');
+    const dispatch = useDispatch();
     const articles = useSelector((state: RootState) => state.articles.articles);
+    const loading = useSelector((state: RootState) => state.articles.loading);
+    const error = useSelector((state: RootState) => state.articles.error);
+
+    useEffect(() => {
+        dispatch(fetchArticles())
+    }, [dispatch]);
 
     const filteredArticles = articles.filter(article =>
         article.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text>Loading...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -36,9 +60,9 @@ export default function ArticlesScreen() {
 
             <FlatList
                 data={filteredArticles}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
-                    <Link href={`/article/${item.id}`} asChild>
+                    <Link href={`/article/${item._id}`} asChild>
                         <TouchableOpacity style={styles.articleCard}>
                             <Image source={{ uri: item.imageUrl }} style={styles.articleImage} />
                             <View style={styles.articleContent}>
@@ -69,6 +93,20 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    errorText: {
+        color: '#FF3B30',
+        fontSize: 16,
     },
     header: {
         flexDirection: 'row',

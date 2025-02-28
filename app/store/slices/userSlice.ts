@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import ApiClient from '../../utils/ApiClient';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface User {
     _id: string;
@@ -39,6 +41,7 @@ export const loginUser = createAsyncThunk(
     async (credentials: { email: string; password: string }, { rejectWithValue }) => {
         try {
             const response = await axios.post('http://localhost:3000/api/user/login', credentials);
+            await ApiClient.setAccessToken(response.data.accessToken); // Save access token
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || 'Login failed');
@@ -51,6 +54,7 @@ export const registerUser = createAsyncThunk(
     async (userData: { name: string; email: string; password: string }, { rejectWithValue }) => {
         try {
             const response = await axios.post('http://localhost:3000/api/user/register', userData);
+            await ApiClient.setAccessToken(response.data.accessToken); // Save access token
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || 'Registration failed');
@@ -69,11 +73,7 @@ const userSlice = createSlice({
             state.error = null;
             state.accessToken = null;
             state.refreshToken = null;
-        },
-        updateProfile: (state, action: PayloadAction<Partial<User>>) => {
-            if (state.currentUser) {
-                state.currentUser = { ...state.currentUser, ...action.payload };
-            }
+            AsyncStorage.removeItem('access_token'); // Remove access token on logout
         },
     },
     extraReducers: (builder) => {
@@ -113,6 +113,6 @@ const userSlice = createSlice({
     },
 });
 
-export const { logout, updateProfile } = userSlice.actions;
+export const { logout } = userSlice.actions;
 
 export default userSlice.reducer;

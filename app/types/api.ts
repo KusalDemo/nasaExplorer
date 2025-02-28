@@ -74,3 +74,16 @@ export interface NearEarthObject {
         };
     }>;
 }
+
+export interface Article {
+    _id: string;
+    title: string;
+    content: string;
+    imageUrl: string;
+    authorId: string;
+    authorName: string;
+    createdAt: string;
+    likes: number;
+    dislikes: number;
+    comments: string[];
+}

@@ -29,21 +29,21 @@ export default function CreateArticleScreen() {
     };
 
     const handleSubmit = () => {
-        if (!title || !content || !imageUrl) {
+        if (!title || !content) {
             setError('Please fill in all fields');
             return;
         }
 
         const newArticle = {
-            id: Date.now().toString(),
             title,
             content,
             imageUrl,
-            authorId: user?.id || '',
+            authorId: user?._id || '',
             authorName: user?.name || '',
             createdAt: new Date().toISOString(),
             likes: 0,
             dislikes: 0,
+            comments: [],
         };
 
         dispatch(addArticle(newArticle));
@@ -61,11 +61,15 @@ export default function CreateArticleScreen() {
                 onChangeText={setTitle}
             />
 
-            <TouchableOpacity style={styles.imageButton} onPress={handleImagePick}>
-                <Text style={styles.imageButtonText}>
+            {/*<TouchableOpacity style={styles.imageButton} onPress={handleImagePick}>
+                <TextInput style={styles.imageButtonText}>
                     {imageUrl ? 'Change Cover Image' : 'Add Cover Image'}
-                </Text>
-            </TouchableOpacity>
+                </TextInput>
+            </TouchableOpacity>*/}
+
+            <TextInput style={[styles.input, styles.contentInput]}>
+                {imageUrl ? 'Change Cover Image' : 'Add Cover Image'}
+            </TextInput>
 
             <TextInput
                 style={[styles.input, styles.contentInput]}

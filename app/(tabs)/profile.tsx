@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 export default function ProfileScreen() {
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user.currentUser);
-    const userArticles = useSelector((state: RootState) => state.articles.userArticles);
+    const userArticles = useSelector((state: RootState) => state.articles.articles);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -46,7 +46,7 @@ export default function ProfileScreen() {
                                 </Text>
 
                                 <View style={styles.articleActions}>
-                                    <Link href={`/article/edit/${item.id}`} asChild>
+                                    <Link href={`/article/edit/${item._id}`} asChild>
                                         <TouchableOpacity style={styles.actionButton}>
                                             <Ionicons name="create" size={20} color="#007AFF" />
                                             <Text style={styles.actionText}>Edit</Text>
