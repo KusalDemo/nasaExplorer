@@ -25,7 +25,6 @@ The NASA Explorer is a mobile application that provides users with stunning spac
 - 🔐 **User Authentication** – Secure login with JWT
 
 ##  Deployment
-- **Frontend:**  Vercel
 - **Backend:** Render
 - **Database:** MongoDB Atlas
 
