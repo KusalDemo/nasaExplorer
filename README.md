@@ -5,10 +5,12 @@
 ![MongoDB](https://img.shields.io/badge/Database-MongoDB-brightgreen)
 
 ##  Overview
-The **NASA Explorer** is a web application that provides users with stunning space-related content from NASA, including the Astronomy Picture of the Day (APOD), Mars rover images, NASA's image gallery, and near-earth object tracking. Users can also share their own space-related posts. The application is built using **React** for the frontend and **Express.js** for the backend, with **MongoDB** as the database.
+
+The NASA Explorer is a mobile application that provides users with stunning space-related content from NASA, including the Astronomy Picture of the Day (APOD), Mars rover images, NASA's image gallery, and near-earth object tracking. Users can also share their own space-related posts. The application is built using Expo (React Native) for the frontend and Express.js for the backend, with MongoDB as the database.
 
 ##  Tech Stack
-- **Frontend:** React.js, Tailwind CSS
+
+- **Frontend:** Expo (React Native)
 - **Backend:** Express.js, Node.js
 - **Database:** MongoDB
 - **Authentication:** JWT (JSON Web Token)
