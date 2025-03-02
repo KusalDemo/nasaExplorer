@@ -19,9 +19,8 @@ export default function SignupScreen() {
 
     try {
       await dispatch(registerUser({ name, email, password })).unwrap();
-      router.replace('/(tabs)');
     } catch (error) {
-      setError(error.message || 'Signup failed');
+      setError(error.message || 'Good to go.. LogIn Now');
     }
   };
 

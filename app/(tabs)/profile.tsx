@@ -1,19 +1,61 @@
-import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { Link, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/slices/userSlice';
+import { deleteArticle, fetchArticles } from '../store/slices/articleSlice';
 import { format } from 'date-fns';
+import { useEffect } from 'react';
 
 export default function ProfileScreen() {
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user.currentUser);
-    const userArticles = useSelector((state: RootState) => state.articles.articles);
+    const articles = useSelector((state: RootState) => state.articles.articles);
+    const loading = useSelector((state: RootState) => state.articles.loading);
+    const error = useSelector((state: RootState) => state.articles.error);
+
+    // Filter articles for the current user
+    const userArticles = articles.filter((article) => article.authorId === user?._id);
+
+    useEffect(() => {
+        dispatch(fetchArticles());
+    }, [dispatch]);
 
     const handleLogout = () => {
         dispatch(logout());
     };
+
+    const handleDeleteArticle = (articleId: string) => {
+        Alert.alert(
+            'Delete Article',
+            'Are you sure you want to delete this article?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => dispatch(deleteArticle(articleId)),
+                },
+            ]
+        );
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <Text>Loading...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={styles.container}>
+                <Text>Error: {error}</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -35,7 +77,7 @@ export default function ProfileScreen() {
 
                 <FlatList
                     data={userArticles}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item._id}
                     renderItem={({ item }) => (
                         <View style={styles.articleCard}>
                             <Image source={{ uri: item.imageUrl }} style={styles.articleImage} />
@@ -46,7 +88,7 @@ export default function ProfileScreen() {
                                 </Text>
 
                                 <View style={styles.articleActions}>
-                                    <Link href={`/article/edit/${item._id}`} asChild>
+                                    <Link href={`/article/create/${item._id}`} asChild>
                                         <TouchableOpacity style={styles.actionButton}>
                                             <Ionicons name="create" size={20} color="#007AFF" />
                                             <Text style={styles.actionText}>Edit</Text>
@@ -55,7 +97,7 @@ export default function ProfileScreen() {
 
                                     <TouchableOpacity
                                         style={[styles.actionButton, styles.deleteButton]}
-                                        onPress={() => {/* Handle delete */}}>
+                                        onPress={() => handleDeleteArticle(item._id)}>
                                         <Ionicons name="trash" size={20} color="#FF3B30" />
                                         <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
                                     </TouchableOpacity>

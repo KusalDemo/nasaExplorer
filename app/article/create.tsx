@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { addArticle } from '../store/slices/articleSlice';
+import { addArticle, updateArticle } from '../store/slices/articleSlice';
 import { RootState } from '../store/store';
-import * as ImagePicker from 'expo-image-picker';
 
 export default function CreateArticleScreen() {
+    const { id } = useLocalSearchParams(); // For edit mode
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
@@ -14,27 +14,27 @@ export default function CreateArticleScreen() {
 
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user.currentUser);
+    const articles = useSelector((state: RootState) => state.articles.articles);
 
-    const handleImagePick = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [16, 9],
-            quality: 1,
-        });
-
-        if (!result.canceled && result.assets[0]) {
-            setImageUrl(result.assets[0].uri);
+    // Pre-fill form if in edit mode
+    useEffect(() => {
+        if (id) {
+            const article = articles.find((a) => a._id === id);
+            if (article) {
+                setTitle(article.title);
+                setContent(article.content);
+                setImageUrl(article.imageUrl);
+            }
         }
-    };
+    }, [id, articles]);
 
     const handleSubmit = () => {
-        if (!title || !content) {
+        if (!title || !content || !imageUrl) {
             setError('Please fill in all fields');
             return;
         }
 
-        const newArticle = {
+        const articleData = {
             title,
             content,
             imageUrl,
@@ -46,7 +46,14 @@ export default function CreateArticleScreen() {
             comments: [],
         };
 
-        dispatch(addArticle(newArticle));
+        if (id) {
+            // Update existing article
+            dispatch(updateArticle({ articleId: id as string, articleData }));
+        } else {
+            // Add new article
+            dispatch(addArticle(articleData));
+        }
+
         router.back();
     };
 
@@ -61,15 +68,15 @@ export default function CreateArticleScreen() {
                 onChangeText={setTitle}
             />
 
-            {/*<TouchableOpacity style={styles.imageButton} onPress={handleImagePick}>
-                <TextInput style={styles.imageButtonText}>
-                    {imageUrl ? 'Change Cover Image' : 'Add Cover Image'}
-                </TextInput>
-            </TouchableOpacity>*/}
-
-            <TextInput style={[styles.input, styles.contentInput]}>
-                {imageUrl ? 'Change Cover Image' : 'Add Cover Image'}
-            </TextInput>
+            <TextInput
+                style={styles.input}
+                placeholder="Cover Image URL"
+                value={imageUrl}
+                onChangeText={setImageUrl}
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+            />
 
             <TextInput
                 style={[styles.input, styles.contentInput]}
@@ -81,7 +88,9 @@ export default function CreateArticleScreen() {
             />
 
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Publish Article</Text>
+                <Text style={styles.submitButtonText}>
+                    {id ? 'Update Article' : 'Publish Article'}
+                </Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -109,18 +118,6 @@ const styles = StyleSheet.create({
     contentInput: {
         height: 300,
         marginBottom: 20,
-    },
-    imageButton: {
-        backgroundColor: '#f0f0f0',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    imageButtonText: {
-        color: '#007AFF',
-        fontSize: 16,
-        fontWeight: '600',
     },
     submitButton: {
         backgroundColor: '#007AFF',

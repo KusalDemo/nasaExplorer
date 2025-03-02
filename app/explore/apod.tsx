@@ -40,9 +40,9 @@ export default function APODScreen() {
 
     return (
         <ScrollView style={styles.container}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            {/*<TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={24} color="#007AFF" />
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
 
             <Image
                 source={{ uri: currentApod.url }}

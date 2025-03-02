@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, Share, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
@@ -16,7 +16,14 @@ export default function PhotoDetailsScreen() {
 
     const dispatch = useDispatch();
     const router = useRouter();
+    const navigation = useNavigation(); // Get navigation instance
     const { roverPhotos, selectedPhoto } = useSelector((state: RootState) => state.mars);
+
+    useEffect(() => {
+        if (selectedPhoto) {
+            navigation.setOptions({ title: selectedPhoto.camera.full_name });
+        }
+    }, [selectedPhoto, navigation]);
 
     // Flatten all rover photos to search for the specific photo
     const allPhotos = Object.values(roverPhotos).flat();
@@ -27,7 +34,6 @@ export default function PhotoDetailsScreen() {
             dispatch(setSelectedPhoto(photo));
             setLoading(false);
         } else {
-            // If photo not found in current state, try to fetch from Curiosity (most common)
             dispatch(fetchRoverPhotos({ rover: 'curiosity', sol: 1000 }) as any)
                 .then(() => {
                     const newPhoto = allPhotos.find(p => p.id.toString() === photoId);
@@ -116,6 +122,7 @@ export default function PhotoDetailsScreen() {
         </ScrollView>
     );
 }
+
 
 const styles = StyleSheet.create({
         container: {
